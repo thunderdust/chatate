@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<com.avoscloud.chat.ui.view.PlayButton xmlns:android="http://schemas.android.com/apk/res/android"
+<liu.weiran.chatate.ui.views.PlayButton xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:id="@+id/playBtn"

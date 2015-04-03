@@ -41,16 +41,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.USER_PRESENT" />
-                <action android:name="com.avoscloud.chat.RETRY_CONNECT" />
+                <action android:name="liu.weiran.chatate.RETRY_CONNECT" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".service.receiver.MsgReceiver" >
+        <receiver android:name=".service.receiver.MessageReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.avoscloud.session.action" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".service.receiver.GroupMsgReceiver" >
+        <receiver android:name=".service.receiver.GroupMessageReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="com.avoscloud.group.action" />
@@ -76,6 +76,62 @@
         </activity>
         <activity
             android:name="liu.weiran.chatate.ui.activities.RegisterActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.AddFriendActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.AnnotationActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.BaseActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.ChatActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupAddMembersActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupBaseActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupDetailActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupListActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.ImageBrowserActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.LocationActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.NewFriendRequestActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.NotifySettingActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.PersonInfoActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.UpdataContentActivity"
             android:label="@string/app_name" >
         </activity>
     </application>

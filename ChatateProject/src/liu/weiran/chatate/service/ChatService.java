@@ -1,11 +1,37 @@
 package liu.weiran.chatate.service;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
+
+import org.json.JSONException;
 
 import liu.weiran.chatate.avobject.ChatGroup;
 import liu.weiran.chatate.avobject.User;
+import liu.weiran.chatate.base.MyApplication;
+import liu.weiran.chatate.database.DatabaseHelper;
+import liu.weiran.chatate.database.DatabaseMessage;
+import liu.weiran.chatate.entity.Conversation;
+import liu.weiran.chatate.entity.Message;
+import liu.weiran.chatate.entity.RoomType;
+import liu.weiran.chatate.service.listener.MessageListener;
+import liu.weiran.chatate.service.receiver.MessageReceiver;
+import liu.weiran.chatate.ui.activities.ChatActivity;
+import liu.weiran.chatate.util.ChatUtils;
+import liu.weiran.chatate.util.Logger;
+import liu.weiran.chatate.util.NetworkAsyncTask;
+import liu.weiran.chatate.util.Utils;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 
 import com.avos.avoscloud.*;
 
@@ -49,7 +75,6 @@ public class ChatService {
 	public static Session getSessionForCurrentUser() {
 		return SessionManager.getInstance(getSelfID());
 	}
-	/*
 
 	public static void openSession() {
 		Session session = getSessionForCurrentUser();
@@ -59,12 +84,14 @@ public class ChatService {
 
 	public static List<Conversation> getConversationsAndCache()
 			throws AVException {
-		List<Msg> msgs = DBMsg.getRecentMsgs(User.getCurrentUserID());
+		List<Message> msgs = DatabaseMessage.getRecentMessages(User
+				.getCurrentUserID());
 		cacheUserOrChatGroup(msgs);
 		ArrayList<Conversation> conversations = new ArrayList<Conversation>();
-		DBHelper dbHelper = new DBHelper(App.ctx, App.DB_NAME, App.DB_VER);
+		DatabaseHelper dbHelper = new DatabaseHelper(MyApplication.mCtx,
+				MyApplication.DB_NAME, MyApplication.DB_VERSION);
 		SQLiteDatabase db = dbHelper.getReadableDatabase();
-		for (Msg msg : msgs) {
+		for (Message msg : msgs) {
 			Conversation conversation = new Conversation();
 			if (msg.getRoomType() == RoomType.Single) {
 				String chatUserId = msg.getOtherId();
@@ -73,8 +100,9 @@ public class ChatService {
 				conversation.setToChatGroup(CacheService.lookupChatGroup(msg
 						.getConvid()));
 			}
-			int unreadCount = DBMsg.getUnreadCount(db, msg.getConvid());
-			conversation.setMsg(msg);
+			int unreadCount = DatabaseMessage.getUnreadCount(db,
+					msg.getConvid());
+			conversation.setMessage(msg);
 			conversation.setUnreadCount(unreadCount);
 			conversations.add(conversation);
 		}
@@ -82,10 +110,11 @@ public class ChatService {
 		return conversations;
 	}
 
-	public static void cacheUserOrChatGroup(List<Msg> msgs) throws AVException {
+	public static void cacheUserOrChatGroup(List<Message> msgs)
+			throws AVException {
 		Set<String> userIds = new HashSet<String>();
 		Set<String> groupIds = new HashSet<String>();
-		for (Msg msg : msgs) {
+		for (Message msg : msgs) {
 			if (msg.getRoomType() == RoomType.Single) {
 				userIds.add(msg.getToPeerId());
 			} else {
@@ -99,17 +128,17 @@ public class ChatService {
 	}
 
 	public static void closeSession() {
-		Session session = ChatService.getSession();
+		Session session = ChatService.getSessionForCurrentUser();
 		session.close();
 	}
 
 	public static Group getGroupById(String groupId) {
-		return getSession().getGroup(groupId);
+		return getSessionForCurrentUser().getGroup(groupId);
 	}
 
-	public static void notifyMsg(Context context, Msg msg, Group group)
+	public static void notifyMsg(Context context, Message msg, Group group)
 			throws JSONException {
-		if (System.currentTimeMillis() - lastNotifyTime < NOTIFY_PEROID) {
+		if (System.currentTimeMillis() - lastNotifyTime < NOTIFY_PERIOD) {
 			return;
 		} else {
 			lastNotifyTime = System.currentTimeMillis();
@@ -138,22 +167,23 @@ public class ChatService {
 		NotificationManager man = (NotificationManager) context
 				.getSystemService(Context.NOTIFICATION_SERVICE);
 		Notification notification = builder.getNotification();
-		PreferenceMap preferenceMap = PreferenceMap.getCurUserPrefDao(context);
+		PreferenceMap preferenceMap = PreferenceMap
+				.getCurUserPreference(context);
 		if (preferenceMap.isVoiceNotify()) {
 			notification.defaults |= Notification.DEFAULT_SOUND;
 		}
 		if (preferenceMap.isVibrateNotify()) {
 			notification.defaults |= Notification.DEFAULT_VIBRATE;
 		}
-		man.notify(REPLY_NOTIFY_ID, notification);
+		man.notify(REPLY_NOTIFY_INDEX, notification);
 	}
 
 	public static void onMessage(Context context, AVMessage avMsg,
-			Set<MsgListener> listeners, Group group) {
-		final Msg msg = Msg.fromAVMessage(avMsg);
+			Set<MessageListener> listeners, Group group) {
+		final Message msg = Message.fromAVMessage(avMsg);
 		String convid;
 		if (group == null) {
-			String selfId = getSelfId();
+			String selfId = getSelfID();
 			msg.setToPeerId(selfId);
 			convid = ChatUtils.convid(selfId, msg.getFromPeerId());
 			msg.setRoomType(RoomType.Single);
@@ -161,21 +191,22 @@ public class ChatService {
 			convid = group.getGroupId();
 			msg.setRoomType(RoomType.Group);
 		}
-		msg.setStatus(Msg.Status.SendReceived);
-		msg.setReadStatus(Msg.ReadStatus.Unread);
+		msg.setStatus(Message.Status.SendReceived);
+		msg.setReadStatus(Message.ReadStatus.Unread);
 		msg.setConvid(convid);
 		handleReceivedMsg(context, msg, listeners, group);
 	}
 
-	public static void handleReceivedMsg(final Context context, final Msg msg,
-			final Set<MsgListener> listeners, final Group group) {
-		new NetAsyncTask(context, false) {
+	public static void handleReceivedMsg(final Context context,
+			final Message msg, final Set<MessageListener> listeners,
+			final Group group) {
+		new NetworkAsyncTask(context, false) {
 			@Override
 			protected void doInBack() throws Exception {
-				if (msg.getType() == Msg.Type.Audio) {
+				if (msg.getType() == Message.Type.Audio) {
 					File file = new File(msg.getAudioPath());
 					String url = msg.getContent();
-					Utils.downloadFileIfNotExists(url, file);
+					Utils.downloadUncachedFile(url, file);
 				}
 				if (group != null) {
 					GroupService.cacheChatGroupIfNone(group.getGroupId());
@@ -187,12 +218,12 @@ public class ChatService {
 			@Override
 			protected void onPost(Exception e) {
 				if (e != null) {
-					Utils.toast(context, com.avoscloud.chat.R.string.badNetwork);
+					Utils.toast(context, liu.weiran.chatate.R.string.badNetwork);
 				} else {
-					DBMsg.insertMsg(msg);
+					DatabaseMessage.insertMessage(msg);
 					String otherId = getOtherId(msg.getFromPeerId(), group);
 					boolean done = false;
-					for (MsgListener listener : listeners) {
+					for (MessageListener listener : listeners) {
 						if (listener.onMessageUpdate(otherId)) {
 							done = true;
 							break;
@@ -201,9 +232,13 @@ public class ChatService {
 					if (!done) {
 						if (AVUser.getCurrentUser() != null) {
 							PreferenceMap preferenceMap = PreferenceMap
-									.getCurUserPrefDao(context);
+									.getCurUserPreference(context);
 							if (preferenceMap.isNotifyWhenNews()) {
-								notifyMsg(context, msg, group);
+								try {
+									notifyMsg(context, msg, group);
+								} catch (JSONException e1) {
+									e1.printStackTrace();
+								}
 							}
 						}
 					}
@@ -222,37 +257,38 @@ public class ChatService {
 	}
 
 	public static void onMessageSent(AVMessage avMsg,
-			Set<MsgListener> listeners, Group group) {
-		Msg msg = Msg.fromAVMessage(avMsg);
-		DBMsg.updateStatusAndTimestamp(msg.getObjectId(),
-				Msg.Status.SendSucceed, msg.getTimestamp());
+			Set<MessageListener> listeners, Group group) {
+		Message msg = Message.fromAVMessage(avMsg);
+		DatabaseMessage.updateStatusAndTimestamp(msg.getObjectId(),
+				Message.Status.SendSucceed, msg.getTimestamp());
 		String otherId = getOtherId(msg.getToPeerId(), group);
-		for (MsgListener msgListener : listeners) {
-			if (msgListener.onMessageUpdate(otherId)) {
+		for (MessageListener MessageListener : listeners) {
+			if (MessageListener.onMessageUpdate(otherId)) {
 				break;
 			}
 		}
 	}
 
 	public static void onMessageFailure(AVMessage avMsg,
-			Set<MsgListener> msgListeners, Group group) {
-		Msg msg = Msg.fromAVMessage(avMsg);
-		DBMsg.updateStatus(msg.getObjectId(), Msg.Status.SendFailed);
+			Set<MessageListener> MessageListeners, Group group) {
+		Message msg = Message.fromAVMessage(avMsg);
+		DatabaseMessage.updateStatus(msg.getObjectId(),
+				Message.Status.SendFailed);
 		String otherId = getOtherId(msg.getToPeerId(), group);
-		for (MsgListener msgListener : msgListeners) {
-			if (msgListener.onMessageUpdate(otherId)) {
+		for (MessageListener MessageListener : MessageListeners) {
+			if (MessageListener.onMessageUpdate(otherId)) {
 				break;
 			}
 		}
 	}
 
 	public static void onMessageError(Throwable throwable,
-			Set<MsgListener> msgListeners) {
+			Set<MessageListener> MessageListeners) {
 		String errorMsg = throwable.getMessage();
 		Logger.d("error " + errorMsg);
 		if (errorMsg != null && errorMsg.startsWith("{")) {
 			AVMessage avMsg = new AVMessage(errorMsg);
-			// onMessageFailure(avMsg, msgListeners, group);
+			// onMessageFailure(avMsg, MessageListeners, group);
 		}
 	}
 
@@ -263,15 +299,16 @@ public class ChatService {
 	}
 
 	public static void cancelNotification(Context ctx) {
-		Utils.cancelNotification(ctx, REPLY_NOTIFY_ID);
+		Utils.cancelNotification(ctx, REPLY_NOTIFY_INDEX);
 	}
 
 	public static void onMessageDelivered(AVMessage avMsg,
-			Set<MsgListener> listeners) {
-		Msg msg = Msg.fromAVMessage(avMsg);
-		DBMsg.updateStatus(msg.getObjectId(), Msg.Status.SendReceived);
+			Set<MessageListener> listeners) {
+		Message msg = Message.fromAVMessage(avMsg);
+		DatabaseMessage.updateStatus(msg.getObjectId(),
+				Message.Status.SendReceived);
 		String otherId = msg.getToPeerId();
-		for (MsgListener listener : listeners) {
+		for (MessageListener listener : listeners) {
 			if (listener.onMessageUpdate(otherId)) {
 				break;
 			}
@@ -279,8 +316,7 @@ public class ChatService {
 	}
 
 	public static boolean isSessionPaused() {
-		return MsgReceiver.isSessionPaused();
+		return MessageReceiver.isSessionPaused();
 	}
-	*/
 
 }

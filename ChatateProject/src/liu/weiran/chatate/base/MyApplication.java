@@ -5,7 +5,9 @@ import java.io.File;
 import liu.weiran.chatate.R;
 import liu.weiran.chatate.avobject.AddRequest;
 import liu.weiran.chatate.avobject.ChatGroup;
+import liu.weiran.chatate.avobject.UpdateInfo;
 import liu.weiran.chatate.service.ChatService;
+import liu.weiran.chatate.service.UpdateService;
 import liu.weiran.chatate.ui.activities.SplashActivity;
 import liu.weiran.chatate.util.ImageUtils;
 import liu.weiran.chatate.util.Logger;
@@ -30,7 +32,7 @@ import com.nostra13.universalimageloader.utils.StorageUtils;
 // Class required to initiate and access LeanCloud SDK
 public class MyApplication extends Application {
 
-	public static final String DB_NAME = "";
+	public static final String DB_NAME = "chat.db3";
 	public static final int DB_VERSION = 4;
 	public static boolean isDebugModeOn = false;
 	public static MyApplication mCtx;
@@ -50,7 +52,7 @@ public class MyApplication extends Application {
 
 		AVObject.registerSubclass(AddRequest.class);
 		AVObject.registerSubclass(ChatGroup.class);
-		//AVObject.registerSubclass(UpdateInfo.class);
+		AVObject.registerSubclass(UpdateInfo.class);
 
 		AVInstallation.getCurrentInstallation().saveInBackground();
 		PushService.setDefaultPushCallback(mCtx, SplashActivity.class);
@@ -64,7 +66,7 @@ public class MyApplication extends Application {
 		// initBaidu();
 		openStrictMode();
 		if (AVUser.getCurrentUser() != null) {
-			//ChatService.openSession();
+			ChatService.openSession();
 		}
 	}
 
@@ -95,42 +97,41 @@ public class MyApplication extends Application {
 		}
 	}
 
-	/*
 	// create table for AVObject subclass
 	public static void initTables() {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
+
 					if (AVUser.getCurrentUser() == null) {
 						throw new NullPointerException(
-								"No logined user, cannot run");
-						// create AddRequest Table
-						AddRequest addRequest = new AddRequest();
-						addRequest.setRequestSender(AVUser.getCurrentUser());
-						addRequest.setRequestReceiver(AVUser.getCurrentUser());
-						addRequest.setStatus(AddRequest.STATUS_PENDING);
-						addRequest.save();
-						addRequest.delete();
-
-						UpdateService.createUpdateInfo();//?? why update here?
-
-						// create Avatar Table for default avatar
-						Bitmap bitmap = BitmapFactory.decodeResource(
-								MyApplication.mCtx.getResources(),
-								R.drawable.default_user);
-						byte[] bs = Utils.getBytesFromBitmap(bitmap);
-						AVFile file = new AVFile("head", bs);
-						file.save();
-						AVObject avatar = new AVObject("Avatar");
-						avatar.put("file", file);
-						avatar.save();
+								"Please run it when login");
 					}
+					// create AddRequest Table
+					AddRequest addRequest = new AddRequest();
+					addRequest.setRequestSender(AVUser.getCurrentUser());
+					addRequest.setRequestReceiver(AVUser.getCurrentUser());
+					addRequest.setStatus(AddRequest.STATUS_PENDING);
+					addRequest.save();
+					addRequest.delete();
+
+					UpdateService.createUpdateInfo();
+
+					// create Avatar Table for default avatar
+					Bitmap bitmap = BitmapFactory.decodeResource(
+							MyApplication.mCtx.getResources(), R.drawable.head);
+					byte[] bs = Utils.getBytesFromBitmap(bitmap);
+					AVFile file = new AVFile("head", bs);
+					file.save();
+					AVObject avatar = new AVObject("Avatar");
+					avatar.put("file", file);
+					avatar.save();
+
 				} catch (AVException e) {
 					e.printStackTrace();
 				}
 			}
 		}).start();
 	}
-	*/
 }

@@ -78,6 +78,62 @@
             android:name="liu.weiran.chatate.ui.activities.RegisterActivity"
             android:label="@string/app_name" >
         </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.AddFriendActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.AnnotationActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.BaseActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.ChatActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupAddMembersActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupBaseActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupDetailActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.GroupListActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.ImageBrowserActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.LocationActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.NewFriendRequestActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.NotifySettingActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.PersonInfoActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="liu.weiran.chatate.ui.activities.UpdataContentActivity"
+            android:label="@string/app_name" >
+        </activity>
     </application>
 
 </manifest>

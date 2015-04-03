@@ -38,7 +38,7 @@ public class CacheService {
 		return cache_group_chat.get(groupId);
 	}
 
-	public static void registercache_group_chat(List<ChatGroup> chatGroups) {
+	public static void registerChatGroups(List<ChatGroup> chatGroups) {
 		for (ChatGroup chatGroup : chatGroups) {
 			registerChatGroup(chatGroup);
 		}

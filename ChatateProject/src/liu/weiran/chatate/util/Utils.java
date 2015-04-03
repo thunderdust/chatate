@@ -8,12 +8,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 import liu.weiran.chatate.R;
@@ -21,12 +29,24 @@ import liu.weiran.chatate.base.MyApplication;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -34,6 +54,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.view.MenuItem;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -223,11 +244,110 @@ public class Utils {
 
 	// 265
 
-	// 346
+	// 283
+	public static void notify(Context context, String msg, String title,
+			Class<?> toClz, int notifyId) {
+		PendingIntent pend = PendingIntent.getActivity(context, 0, new Intent(
+				context, toClz), 0);
+		Notification.Builder builder = new Notification.Builder(context);
+		int icon = context.getApplicationInfo().icon;
+		builder.setContentIntent(pend).setSmallIcon(icon)
+				.setWhen(System.currentTimeMillis()).setTicker(msg)
+				.setContentTitle(title).setContentText(msg).setAutoCancel(true);
+
+		NotificationManager man = (NotificationManager) context
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		man.notify(notifyId, builder.getNotification());
+	}
+
+	public static void cancelNotification(Context ctx, int notifyId) {
+		String ns = Context.NOTIFICATION_SERVICE;
+		NotificationManager nMgr = (NotificationManager) ctx
+				.getSystemService(ns);
+		nMgr.cancel(notifyId);
+	}
+
+	public static String getStringByFile(File f) throws IOException {
+		StringBuilder builder = new StringBuilder();
+		BufferedReader br = new BufferedReader(new FileReader(f));
+		String line;
+		while ((line = br.readLine()) != null) {
+			builder.append(line);
+		}
+		br.close();
+		return builder.toString();
+	}
+
+	@SuppressWarnings("deprecation")
+	public static String getShortUrl(String longUrl) throws IOException,
+			JSONException {
+		if (longUrl.startsWith("http") == false) {
+			throw new IllegalArgumentException("longUrl must start with http");
+		}
+		String url = "https://api.weibo.com/2/short_url/shorten.json";
+		HttpPost post = new HttpPost(url);
+		List<NameValuePair> params = new ArrayList<NameValuePair>();
+		params.add(new BasicNameValuePair("access_token",
+				"2.00_hkjqBR1dbuCc632289355qerfeD"));
+		params.add(new BasicNameValuePair("url_long", longUrl));
+		post.setEntity(new UrlEncodedFormEntity(params, HTTP.UTF_8));
+		HttpResponse res = new DefaultHttpClient().execute(post);
+		if (res.getStatusLine().getStatusCode() == 200) {
+			String str = EntityUtils.toString(res.getEntity());
+			JSONObject json = new JSONObject(str);
+			JSONArray arr = json.getJSONArray("urls");
+			JSONObject urls = arr.getJSONObject(0);
+			if (urls.getBoolean("result")) {
+				return urls.getString("url_short");
+			} else {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	public static String getGb2312Encode(String s)
+			throws UnsupportedEncodingException {
+		return URLEncoder.encode(s, "gb2312");
+	}
+
 	public static void goActivity(Context cxt, Class<?> cls) {
 		Intent intent = new Intent(cxt, cls);
 		cxt.startActivity(intent);
 	}
+
+	/*
+	 * public static void installApk(Context context, String path) { Intent
+	 * intent1 = new Intent(); intent1.setAction(Intent.ACTION_VIEW); File file
+	 * = new File(path); Log.i("lzw", file.getAbsolutePath());
+	 * intent1.setDataAndType(Uri.fromFile(file),
+	 * "application/vnd.android.package-archive");
+	 * intent1.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	 * context.startActivity(intent1); }
+	 */
+
+	public static void showInfoDialog(Activity cxt, String msg, String title) {
+		AlertDialog.Builder builder = getBaseDialogBuilder(cxt);
+		builder.setMessage(msg)
+				.setPositiveButton(cxt.getString(R.string.right), null)
+				.setTitle(title).show();
+	}
+
+	public static Activity modifyDialogContext(Activity cxt) {
+		Activity parent = cxt.getParent();
+		if (parent != null) {
+			return parent;
+		} else {
+			return cxt;
+		}
+	}
+
+	public static AlertDialog.Builder getBaseDialogBuilder(Activity ctx) {
+		return new AlertDialog.Builder(ctx).setTitle(R.string.tips).setIcon(
+				R.drawable.icon_info_2);
+	}
+
+	// 381
 
 	// 553
 	public static void toast(Context ctx, String content) {
@@ -304,6 +424,44 @@ public class Utils {
 		}
 	}
 
+	// 639
+	// cryptographic hash function
+	public static String md5(String string) {
+		byte[] hash = null;
+		try {
+			hash = string.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException("UTF-8 is not supported", e);
+		}
+		return computeMD5(hash);
+	}
+
+	public static String computeMD5(byte[] input) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			md.update(input, 0, input.length);
+			byte[] md5bytes = md.digest();
+
+			StringBuffer hexString = new StringBuffer();
+			for (int i = 0; i < md5bytes.length; i++) {
+				String hex = Integer.toHexString(0xff & md5bytes[i]);
+				if (hex.length() == 1)
+					hexString.append('0');
+				hexString.append(hex);
+			}
+			return hexString.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static boolean isCollectionNotEmpty(Collection<?> collection) {
+		if (collection != null && collection.size() > 0) {
+			return true;
+		}
+		return false;
+	}
+
 	// 692
 	public static int getColor(int resId) {
 		return MyApplication.mCtx.getResources().getColor(resId);
@@ -324,6 +482,20 @@ public class Utils {
 			String num = String.format("%.1f", distance / 1000);
 			return num + MyApplication.mCtx.getString(R.string.kilometres);
 		}
+	}
+
+	// 722
+	public static void printException(Exception e) {
+		if (MyApplication.isDebugModeOn) {
+			e.printStackTrace();
+		}
+	}
+
+	// 728
+
+	public static void alwaysShowMenuItem(MenuItem add) {
+		add.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS
+				| MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 	}
 
 	// 733

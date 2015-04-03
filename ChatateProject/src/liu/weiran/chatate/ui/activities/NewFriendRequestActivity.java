@@ -3,6 +3,7 @@ package liu.weiran.chatate.ui.activities;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -31,7 +32,7 @@ public class NewFriendRequestActivity extends BaseActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.add_friend_item);
+		setContentView(R.layout.activity_new_friend_request);
 		initView();
 		refresh();
 	}
@@ -70,7 +71,12 @@ public class NewFriendRequestActivity extends BaseActivity implements
 	private void initView() {
 		initActionBar(R.string.new_friends);
 		listview = (ListView) findViewById(R.id.newfriendList);
-		listview.setOnItemLongClickListener(this);
+		if (listview != null) {
+			listview.setOnItemLongClickListener(this);
+		}
+		else {
+			Log.d("NEW FRIEND REQUEST ACTIVITY", "the list view is null");
+		}
 		adapter = new NewFriendRequestAdapter(this, addRequests);
 		listview.setAdapter(adapter);
 	}
