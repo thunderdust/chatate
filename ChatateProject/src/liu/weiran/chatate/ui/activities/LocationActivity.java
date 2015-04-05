@@ -21,6 +21,7 @@ import liu.weiran.chatate.R;
 import liu.weiran.chatate.base.MyApplication;
 import liu.weiran.chatate.util.Utils;
 
+
 public class LocationActivity extends BaseActivity implements
 		OnGetGeoCoderResultListener {
 	public static final int SEND = 0;

@@ -46,8 +46,8 @@ public class MyApplication extends Application {
 
 		// String publicID = "";
 		// String publicKey = "";
-		String appID = "6sf5fan8utg8arwjmf5me9ihxw7wxbp9gwchc9gsytwmqh3o";
-		String appKey = "53ig09jggin3r4bq8eag7wpqn7hlqubkglkna341p33lg26c";
+		String appID = "6fi3dst09icxhksm0mlph4yalqrcu0zbna5mfr7agpmvfsj3";
+		String appKey = "36atomfa6hnc3nn0vbmvomavcjbk5sg9azd8la4uwa4ywueb";
 		AVOSCloud.initialize(this, appID, appKey);
 
 		AVObject.registerSubclass(AddRequest.class);
@@ -56,7 +56,7 @@ public class MyApplication extends Application {
 
 		AVInstallation.getCurrentInstallation().saveInBackground();
 		PushService.setDefaultPushCallback(mCtx, SplashActivity.class);
-		AVOSCloud.setDebugLogEnabled(isDebugModeOn);
+		AVOSCloud.setDebugLogEnabled(true);
 		if (MyApplication.isDebugModeOn) {
 			Logger.level = Logger.VERBOSE;
 		} else {

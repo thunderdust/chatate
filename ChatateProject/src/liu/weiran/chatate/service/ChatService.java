@@ -78,7 +78,7 @@ public class ChatService {
 
 	public static void openSession() {
 		Session session = getSessionForCurrentUser();
-		session.setSignatureFactory(new SignatureFactory());
+		((SessionManager) session).setSignatureFactory(new SignatureFactory());
 		session.open(new LinkedList<String>());
 	}
 

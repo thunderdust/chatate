@@ -135,4 +135,10 @@ public class MessageReceiver extends AVMessageReceiver {
 	  public static List<String> getOnlineIds() {
 	    return new ArrayList<String>(onlineIds);
 	  }
+
+	@Override
+	public void onSessionClose(Context arg0, Session arg1) {
+		// TODO Auto-generated method stub
+		
+	}
 	}

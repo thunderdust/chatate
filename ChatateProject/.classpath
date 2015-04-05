@@ -7,16 +7,17 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
 	<classpathentry kind="lib" path="libs/android-async-http-1.4.6.jar"/>
 	<classpathentry kind="lib" path="libs/android-support-v4.jar"/>
-	<classpathentry kind="lib" path="libs/avoscloud-v2.6.9.1.jar"/>
-	<classpathentry kind="lib" path="libs/avospush-v2.6.9.1.jar"/>
+	<classpathentry kind="lib" path="libs/avoscloud-push-v3.0.4.jar"/>
+	<classpathentry kind="lib" path="libs/avoscloud-sdk-v3.0.4.jar"/>
 	<classpathentry kind="lib" path="libs/avossearch-v2.6.9.1.jar"/>
 	<classpathentry kind="lib" path="libs/avosstatistics-v2.6.9.1.jar"/>
 	<classpathentry kind="lib" path="libs/baidumapapi_v3_0_0.jar"/>
 	<classpathentry kind="lib" path="libs/butterknife-6.0.0.jar"/>
 	<classpathentry kind="lib" path="libs/fastjson.jar"/>
 	<classpathentry kind="lib" path="libs/httpmime-4.2.4.jar"/>
-	<classpathentry kind="lib" path="libs/locSDK_4.2.jar"/>
+	<classpathentry kind="lib" path="libs/Java-WebSocket-1.2.0-leancloud.jar"/>
 	<classpathentry kind="lib" path="libs/prettytime-3.2.5.Final.jar"/>
 	<classpathentry kind="lib" path="libs/universal-image-loader-1.9.2_sources.jar"/>
+	<classpathentry kind="lib" path="libs/locSDK_4.2.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
