@@ -211,26 +211,29 @@ public class ChatMessageAdapter extends BaseListAdapter<Message> {
 		statusSendSucceed.setVisibility(View.GONE);
 	}
 
-	public void setAnnotationView(Message msg, TextView locationView) {
+	public void setAnnotationView(Message msg, TextView annotationView) {
 		try {
 			String content = msg.getContent();
 			if (content != null && !content.equals("")) {
 				String[] parts = content.split("&");
-				String address = parts[0];
-				final String latitude = parts[1];
-				final String longtitude = parts[2];
-				locationView.setText(address);
-				locationView.setOnClickListener(new View.OnClickListener() {
+				String text = parts[0];
+				final int start = Integer.parseInt(parts[1]);
+				final int end = Integer.parseInt(parts[2]);
+				final String comment = parts[3];
+				final String bookID = parts[4];
+				// the text displayed as the message
+				annotationView.setText(text);
+				annotationView.setOnClickListener(new View.OnClickListener() {
 
 					@Override
 					public void onClick(View arg0) {
 						Intent intent = new Intent(ctx,
 								AnnotationActivity.class);
-						intent.putExtra("type", "scan");
-						intent.putExtra("latitude",
-								Double.parseDouble(latitude));
-						intent.putExtra("longtitude",
-								Double.parseDouble(longtitude));
+						intent.putExtra("text", "scan");
+						intent.putExtra("start", start);
+						intent.putExtra("end", end);
+						intent.putExtra("comment", comment);
+						intent.putExtra("bid", bookID);
 						ctx.startActivity(intent);
 					}
 				});

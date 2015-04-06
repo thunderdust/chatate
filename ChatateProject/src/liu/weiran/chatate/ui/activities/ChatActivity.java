@@ -54,7 +54,7 @@ import java.util.List;
 
 public class ChatActivity extends BaseActivity implements OnClickListener,
 		MessageListener, XListView.IXListViewListener {
-	public static final int LOCATION_REQUEST = 1;
+	public static final int ANNOTATION_REQUEST = 1;
 	private static final int TAKE_CAMERA_REQUEST = 2;
 	public static final int PAGE_SIZE = 20;
 	private static final int GALLERY_REQUEST = 0;
@@ -69,7 +69,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 
 	View chatTextLayout, chatAudioLayout, chatAddLayout, chatEmotionLayout;
 	View turnToTextBtn, turnToAudioBtn, sendBtn, addImageBtn, showAddBtn,
-			addLocationBtn, showEmotionBtn;
+			addAnnotationBtn, showEmotionBtn;
 	LinearLayout chatBottomLayout;
 	ViewPager emotionPager;
 	private EmotionEditText contentEdit;
@@ -256,7 +256,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 		recordBtn = (RecordButton) findViewById(R.id.recordBtn);
 		chatTextLayout = findViewById(R.id.chatTextLayout);
 		chatAddLayout = findViewById(R.id.chatAddLayout);
-		addLocationBtn = findViewById(R.id.addAnnotationBtn);
+		addAnnotationBtn = findViewById(R.id.addAnnotationBtn);
 		chatEmotionLayout = findViewById(R.id.chatEmotionLayout);
 		showAddBtn = findViewById(R.id.showAddBtn);
 		showEmotionBtn = findViewById(R.id.showEmotionBtn);
@@ -267,7 +267,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 		sendBtn.setOnClickListener(this);
 		contentEdit.setOnClickListener(this);
 		addImageBtn.setOnClickListener(this);
-		addLocationBtn.setOnClickListener(this);
+		addAnnotationBtn.setOnClickListener(this);
 		turnToAudioBtn.setOnClickListener(this);
 		turnToTextBtn.setOnClickListener(this);
 		showAddBtn.setOnClickListener(this);
@@ -457,7 +457,7 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 			toggleEmotionLayout();
 			break;
 		case R.id.addAnnotationBtn:
-			selectLocationFromMap();
+			makeNewAnnotation();
 			break;
 		case R.id.textEdit:
 			hideBottomLayoutAndScrollToLast();
@@ -478,10 +478,13 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 		chatEmotionLayout.setVisibility(View.GONE);
 	}
 
-	private void selectLocationFromMap() {
+	// to-do
+	/* go to annotating activity, return with details of the annotation */
+	private void makeNewAnnotation() {
+
 		Intent intent = new Intent(this, AnnotationActivity.class);
 		intent.putExtra("type", "select");
-		startActivityForResult(intent, LOCATION_REQUEST);
+		startActivityForResult(intent, ANNOTATION_REQUEST);
 	}
 
 	private void toggleEmotionLayout() {
@@ -597,8 +600,8 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 			case TAKE_CAMERA_REQUEST:
 				sendImageByPath(localCameraPath);
 				break;
-			case LOCATION_REQUEST:
-				sendLocationByReturnData(data);
+			case ANNOTATION_REQUEST:
+				sendAnnotationByReturnData(data);
 				break;
 			}
 		}
@@ -606,18 +609,22 @@ public class ChatActivity extends BaseActivity implements OnClickListener,
 		super.onActivityResult(requestCode, resultCode, data);
 	}
 
-	private void sendLocationByReturnData(Intent data) {
-		final double latitude = data.getDoubleExtra("x", 0);
-		final double longitude = data.getDoubleExtra("y", 0);
-		final String address = data.getStringExtra("address");
-		if (address != null && !address.equals("")) {
+	private void sendAnnotationByReturnData(Intent data) {
+
+		final String text = data.getExtras().getString("text");
+		final int start = data.getExtras().getInt("start");
+		final int end = data.getExtras().getInt("end");
+		final String comment = data.getExtras().getString("comment");
+		final String bookID = data.getExtras().getString("bid");
+
+		if (text != null && start >= 0 && end > start && bookID != "") {
 			if (isStateFine()) {
 				MessageAgent.createAndSendMsg(
 						new MessageAgent.MessageBuilderHelper() {
 							@Override
 							public void specifyType(MessageBuilder msgBuilder) {
-								msgBuilder.annotation(address, latitude,
-										longitude);
+								msgBuilder.annotation(text, start, end,
+										comment, bookID);
 							}
 						}, sendCallback);
 			}

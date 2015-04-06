@@ -44,8 +44,11 @@ public class MessageBuilder {
 		file(Message.Type.Image, objectId);
 	}
 
-	public void annotation(String address, double latitude, double longitude) {
-		String content = address + "&" + latitude + "&" + longitude;
+	// annotation details are packed as string 'content'
+	public void annotation(String text, int start, int end, String comment,
+			String bookID) {
+		String content = text + "&" + start + "&" + end + "&" + comment + "&"
+				+ bookID;
 		msg.setContent(content);
 		msg.setType(Message.Type.Annotation);
 	}
@@ -65,7 +68,8 @@ public class MessageBuilder {
 	}
 
 	public static String uploadMsg(Message msg) throws IOException, AVException {
-		if (msg.getType() != Message.Type.Audio && msg.getType() != Message.Type.Image) {
+		if (msg.getType() != Message.Type.Audio
+				&& msg.getType() != Message.Type.Image) {
 			return null;
 		}
 		String objectId = msg.getObjectId();
