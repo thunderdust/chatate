@@ -9,6 +9,7 @@ import com.avos.avoscloud.im.v2.AVIMTypedMessage;
 @AVIMMessageType(type = 1)
 public class AVIMAnnotationMessage extends AVIMTypedMessage {
 
+	// set attribute names in database table
 	@AVIMMessageField(name = "_lcannotation")
 	String text;
 	int startOffset;
@@ -16,9 +17,11 @@ public class AVIMAnnotationMessage extends AVIMTypedMessage {
 	int bookID;
 	String comment;
 
+	// set the attribute name of attributes
 	@AVIMMessageField(name = "_lcannoattrs")
 	Map<String, Object> attrs;
 
+	// set/get functions
 	public String getText() {
 		return this.text;
 	}

@@ -82,19 +82,54 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
         </RelativeLayout>
+        
+        <RelativeLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <Button
+                android:id="@+id/btn_my_book"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/tabbar_my_books"
+                android:onClick="onTabSelect"
+                android:paddingBottom="2dip"
+                android:background="@null"
+                android:paddingTop="7dip"
+                android:scaleType="matrix"
+                android:text="@string/my_book"
+                android:textColor="@drawable/tab_textcolor"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/iv_my_book_tips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginRight="30dp"
+                android:layout_marginTop="7dp"
+                android:background="@drawable/msg_tips"
+                android:contentDescription="@string/action_settings"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </RelativeLayout>
 
         <Button
-            android:id="@+id/btn_discover"
+            android:id="@+id/btn_all_books"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:drawableTop="@drawable/tabbar_discover"
+            android:drawableTop="@drawable/tabbar_book_store"
             android:onClick="onTabSelect"
             android:paddingBottom="2dip"
             android:paddingTop="7dip"
             android:background="@null"
             android:scaleType="matrix"
-            android:text="@string/discover"
+            android:text="@string/book_store"
             android:textColor="@drawable/tab_textcolor"
             android:textSize="12sp" />
 

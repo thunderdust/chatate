@@ -6,16 +6,13 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import liu.weiran.chatate.R;
+import liu.weiran.chatate.ui.activities.book.ReadBookHtmlActivity;
+import liu.weiran.chatate.ui.fragments.BaseFragment;
+import liu.weiran.chatate.util.book.tdHttpClient;
 
-import socialatwork.readpeer.R;
-import socialatwork.readpeer.ReadBookActivity;
-import socialatwork.readpeer.ReadBookHtmlActivity;
-import socialatwork.readpeer.WebRelatedComponents.bookDownloader;
-import socialatwork.readpeer.WebRelatedComponents.tdHttpClient;
 import android.app.Dialog;
+import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -26,7 +23,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,7 +41,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MyBooksFragment extends Fragment {
+public class MyBooksFragment extends BaseFragment {
 
 	private View view;// Cache page view
 	private GridView bookShelf;
@@ -56,13 +52,8 @@ public class MyBooksFragment extends Fragment {
 	// private static String myBookInfo;
 	private ArrayList<String> bookNames;
 	private ArrayList<String> bookIDs;
+	private ArrayList<String> authorNames;
 	private ArrayList<Drawable> bookCovers;
-	// update every time when user login
-	private ArrayList<String> readingListBookIDsOnServer;
-	private ArrayList<String> readingListBookNamesOnServer;
-	private ArrayList<String> readingListBookCoverURLsOnServer;
-	private int readingCountOnServer;
-	private String readingBooksInfo;
 	boolean isUserBookDeletedOnServer = false;
 	// boolean isServerBookDeletionTaskFinished = false;
 
@@ -70,7 +61,7 @@ public class MyBooksFragment extends Fragment {
 	private ProgressDialog dialog = null;
 	private ShelfAdapter mAdapter;
 	private tdHttpClient mHttpClient;
-	private bookDownloader mBookDownloader;
+	
 
 	private final float BOOK_TITLE_FONT_SIZE_BIG = 15;
 	private final float BOOK_TITLE_FONT_SIZE_MEDIUM = 12;
@@ -100,47 +91,6 @@ public class MyBooksFragment extends Fragment {
 					dialog.dismiss();
 				}
 			default:
-				break;
-			}
-		}
-	};
-
-	// Use this handler to update reading list every time user login
-	final Handler readingListUpdateHandler = new Handler() {
-		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case HANDLER_GET_READING_LIST_INFO_DONE:
-				readingListBookIDsOnServer = new ArrayList<String>();
-				readingListBookNamesOnServer = new ArrayList<String>();
-				readingListBookCoverURLsOnServer = new ArrayList<String>();
-				JSONObject booksInfoObject;
-				try {
-					booksInfoObject = new JSONObject(readingBooksInfo);
-					JSONArray booksInfoList = booksInfoObject
-							.getJSONArray("books");
-					int bookCount = booksInfoList.length();
-					readingCountOnServer = bookCount;
-					for (int i = 0; i < bookCount; i++) {
-						JSONObject singleBookInfoObject = (JSONObject) booksInfoList
-								.get(bookCount);
-						String bookID = singleBookInfoObject.getString("bid");
-						readingListBookIDsOnServer.add(bookID);
-						String bookName = singleBookInfoObject
-								.getString("title");
-						readingListBookNamesOnServer.add(bookName);
-						String bookCoverUrl = singleBookInfoObject
-								.getString("book_cover");
-						readingListBookCoverURLsOnServer.add(bookCoverUrl);
-					}
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
-				break;
-			case HANDLER_GET_READING_LIST_INFO_FAIL:
-				Toast.makeText(getActivity().getApplicationContext(),
-						GET_READING_LIST_FROM_SERVER_FAIL, Toast.LENGTH_SHORT)
-						.show();
 				break;
 			}
 		}
@@ -190,19 +140,9 @@ public class MyBooksFragment extends Fragment {
 		bookNames = new ArrayList<String>();
 		bookCovers = new ArrayList<Drawable>();
 		bookIDs = new ArrayList<String>();
+		authorNames = new ArrayList<String>();
 		// Get local & remote user reading books
 		updateLocalBooks();
-		try {
-			getUserReadingList(access_token, uid);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		// Must sync after both side finish ufpdating
-		try {
-			// localAndServerReadingSynchronize();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		bookShelf = (GridView) view.findViewById(R.id.book_shelf);
 		bookShelf.setLongClickable(true);
 
@@ -343,6 +283,7 @@ public class MyBooksFragment extends Fragment {
 		/* Reset data for reloading */
 		bookNames.clear();
 		bookIDs.clear();
+		authorNames.clear();
 		bookCovers.clear();
 		Log.d(TAG, "Updating");
 		File[] fileList = getLocalBookFiles();
@@ -359,97 +300,14 @@ public class MyBooksFragment extends Fragment {
 			// Log.d(TAG,"fileName:"+fileName);
 			String bookIndex = fileName.split("-")[0];
 			String bookName = fileName.split("-")[1];
+			String authorName = fileName.split("-")[2];
+			if (authorName == null) {
+				authorName = "Unknown";
+			}
 			bookNames.add(bookName);
 			bookIDs.add(bookIndex);
+			authorNames.add(authorName);
 		}
-	}
-
-	private void localAndServerReadingSynchronize() throws Exception {
-		if (myBookNum < readingCountOnServer) {// User add new reading on remote
-			// Find out which books are new, download them
-			// keep the ID of the new books
-			ArrayList<String> newUserBookIDListOnServer = new ArrayList<String>();
-			ArrayList<String> newUserBookNameListOnServer = new ArrayList<String>();
-			ArrayList<String> newUserBookCoverURLListOnServer = new ArrayList<String>();
-			mBookDownloader = bookDownloader.getDownloaderInstance();
-
-			for (int i = 0; i < readingCountOnServer; i++) {
-
-				String serverBookID = readingListBookIDsOnServer.get(i);
-				if (!bookIDs.contains(serverBookID)) {
-					newUserBookIDListOnServer.add(serverBookID);
-					String newBookName = readingListBookNamesOnServer.get(i);
-					downloadBook(serverBookID, newBookName);
-					newUserBookNameListOnServer.add(newBookName);
-					newUserBookCoverURLListOnServer
-							.add(readingListBookCoverURLsOnServer.get(i));
-				}
-			}
-		} else if (myBookNum > readingCountOnServer) {// User add new book
-														// locally and haven't
-														// add it on remote
-			// compute how many unadded books, use as size of the bookID array
-			int unaddedBookNum = myBookNum - readingCountOnServer;
-			String[] unaddedUserBookList = new String[unaddedBookNum];
-			int addedBookCount = 0;
-			for (int i = 0; i < myBookNum; i++) {
-				String localBookID = bookIDs.get(i);
-				if (!readingListBookIDsOnServer.contains(localBookID)) {
-					unaddedUserBookList[addedBookCount] = localBookID;
-					addedBookCount++;
-				}
-			}
-			new addUserBookOnServerTask().execute(unaddedUserBookList);
-		}
-	}
-
-	private class addUserBookOnServerTask extends AsyncTask<String, Void, Void> {
-		@Override
-		protected Void doInBackground(String... bookIDs) {
-			for (int i = 0; i < bookIDs.length; i++) {
-				try {
-					mHttpClient.addUserBook(bookIDs[i], access_token, uid);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-			return null;
-		}
-	}
-
-	private void downloadBook(String bookID, String bookName) throws Exception {
-
-		mBookDownloader.downloadBook(getActivity().getApplicationContext(),
-				uid, bookID, access_token, bookName);
-		// Add the newly downloaded books into book list
-		bookNames.add(bookName);
-		bookIDs.add(bookID);
-		// bookCovers.add(index);
-		mAdapter.notifyDataSetChanged();
-	}
-
-	private void getUserReadingList(final String access_token,
-			final String userID) throws Exception {
-
-		readingListUpdateHandler.post(new Runnable() {
-
-			@Override
-			public void run() {
-				try {
-					readingBooksInfo = mHttpClient.getUserReadings(userID,
-							access_token);
-					if (readingBooksInfo != null) {
-						readingListUpdateHandler
-								.sendEmptyMessage(HANDLER_GET_READING_LIST_INFO_DONE);
-					} else {
-						readingListUpdateHandler
-								.sendEmptyMessage(HANDLER_GET_READING_LIST_INFO_FAIL);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
 	}
 
 	private class deleteUserBookOnServerTask extends
@@ -481,9 +339,8 @@ public class MyBooksFragment extends Fragment {
 			if (Environment.getExternalStorageState().equals(
 					android.os.Environment.MEDIA_MOUNTED)) {
 				String storagePath = Environment.getExternalStorageDirectory()
-						.getPath() + "/Readpeer/Books/";
-				String bookPath = storagePath + bookName + "-" + bookID + "-"
-						+ ".txt";
+						.getPath() + "/chatate/Books/";
+				String bookPath = storagePath + bookID + "-" + bookName;
 				File bookFile = new File(bookPath);
 				boolean isDeleted = bookFile.delete();
 				return isDeleted;
@@ -503,7 +360,7 @@ public class MyBooksFragment extends Fragment {
 		if (Environment.getExternalStorageState().equals(
 				android.os.Environment.MEDIA_MOUNTED)) {
 			String storagePath = Environment.getExternalStorageDirectory()
-					.getPath() + "/Readpeer/Books/";
+					.getPath() + "/chatate/Books/";
 			File folder = new File(storagePath);
 			File[] fileList = folder.listFiles();
 			return fileList;
@@ -595,7 +452,7 @@ public class MyBooksFragment extends Fragment {
 				Environment.MEDIA_MOUNTED)) {
 			String rootPath = Environment.getExternalStorageDirectory()
 					.getPath();
-			String applicationFolderPath = rootPath + "/Readpeer";
+			String applicationFolderPath = rootPath + "/chatate";
 			String pictureFilePath = applicationFolderPath + "/Cache/Pictures/";
 			for (int i = 0; i < number; i++) {
 				String bookCoverImagePath = pictureFilePath + bookIDs.get(i)

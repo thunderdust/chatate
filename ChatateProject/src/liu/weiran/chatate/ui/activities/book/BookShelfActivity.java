@@ -2,13 +2,15 @@ package liu.weiran.chatate.ui.activities.book;
 
 import liu.weiran.chatate.R;
 import liu.weiran.chatate.ui.fragments.book.AllBooksFragment;
+import liu.weiran.chatate.ui.fragments.book.AllBooksFragment.OnNewBookDownloadedListener;
 import liu.weiran.chatate.ui.fragments.book.MyBooksFragment;
 import android.app.ActionBar;
 import android.app.ActionBar.Tab;
+import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
@@ -93,13 +95,13 @@ public class BookShelfActivity extends FragmentActivity implements
 		}
 
 		@Override
-		public Fragment getItem(int index) {
+		public android.support.v4.app.Fragment getItem(int index) {
 
 			switch (index) {
 			case 0:
-				return mMyBooksFragment;
+				// return mMyBooksFragment;
 			case 1:
-				return mAllBooksFragment;
+				// return mAllBooksFragment;
 			}
 			return null;
 		}
