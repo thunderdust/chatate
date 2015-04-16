@@ -5,12 +5,14 @@ import liu.weiran.chatate.service.CacheService;
 import liu.weiran.chatate.service.ChatService;
 import liu.weiran.chatate.service.UpdateService;
 import liu.weiran.chatate.service.receiver.FinishReceiver;
+import liu.weiran.chatate.ui.activities.book.ReadPeerLoginActivity;
 import liu.weiran.chatate.ui.fragments.ContactFragment;
 import liu.weiran.chatate.ui.fragments.ConversationFragment;
 import liu.weiran.chatate.ui.fragments.MySpaceFragment;
 import liu.weiran.chatate.ui.fragments.book.AllBooksFragment;
 import liu.weiran.chatate.ui.fragments.book.AllBooksFragment.OnNewBookDownloadedListener;
 import liu.weiran.chatate.ui.fragments.book.MyBooksFragment;
+import liu.weiran.chatate.util.Utils;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -32,6 +34,15 @@ public class MainActivity extends BaseActivity implements
 	AllBooksFragment mBookStoreFragment;
 	MyBooksFragment mMyBooksFragment;
 	MySpaceFragment mySpaceFragment;
+
+	private final int REQUEST_READPEER = 1;
+	private final int RESULT_OK = 1;
+	private final int RESULT_CANCEL = -1;
+	
+	private String readpeer_username = null;
+	private String readpeer_access_token = null;
+	private String readpeer_uid = null;
+	
 
 	public static final int FRAGMENT_N = 4;
 	Button[] tabs;
@@ -67,8 +78,36 @@ public class MainActivity extends BaseActivity implements
 		if (AVUser.getCurrentUser() != null) {
 			ChatService.openSession();
 		}
-
 		// App.initTables();
+
+		// Readpeer account login
+		Intent i = new Intent(this, ReadPeerLoginActivity.class);
+		startActivityForResult(i, REQUEST_READPEER);
+	}
+
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+		if (requestCode == REQUEST_READPEER) {
+			if (resultCode == RESULT_OK) {
+				Bundle result = data.getExtras();
+				readpeer_access_token = result.getString("access_token");
+				readpeer_username =  result.getString("username");
+				readpeer_uid = result.getString("uid");
+				updateBookFragments();
+			}
+			if (resultCode == RESULT_CANCEL) {
+				Utils.toast(mCtx, "Readpeer account login canceled");
+			}
+		}
+	}// onActivityResult
+
+	private void updateBookFragments() {
+		Bundle bundle = new Bundle();
+		bundle.putString("access_token", readpeer_access_token);
+		bundle.putString("uid", readpeer_uid);
+		bundle.putString("username", readpeer_username);
+		mBookStoreFragment.setArguments(bundle);
+		mMyBooksFragment.setArguments(bundle);
 	}
 
 	public static void goMainActivity(Activity activity) {
