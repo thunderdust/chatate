@@ -99,17 +99,6 @@ public class MainActivity extends BaseActivity implements
 					Log.i(TAG, readpeer_uid);
 					Log.i(TAG, readpeer_access_token);
 					Log.i(TAG, readpeer_username);
-
-					if (readpeer_access_token != null
-							&& readpeer_username != null
-							&& readpeer_uid != null) {
-						Log.d("MainActivity",
-								"information from readpeer DOES NOT contain NULL value");
-						updateBookFragments();
-					} else {
-						Log.e("MainActivity",
-								"information from readpeer contains NULL value");
-					}
 				} else {
 					Utils.toast(mCtx,
 							"Failed to get Readpeer account information");
@@ -175,32 +164,46 @@ public class MainActivity extends BaseActivity implements
 		if (id == R.id.btn_message) {
 			if (conversationFragment == null) {
 				conversationFragment = new ConversationFragment();
+				transaction.add(R.id.fragment_container, conversationFragment);
 			}
-			transaction.add(R.id.fragment_container, conversationFragment);
 			transaction.show(conversationFragment);
 		} else if (id == R.id.btn_contact) {
 			if (contactFragment == null) {
 				contactFragment = new ContactFragment();
+				transaction.add(R.id.fragment_container, contactFragment);
 			}
-			transaction.add(R.id.fragment_container, contactFragment);
 			transaction.show(contactFragment);
 		} else if (id == R.id.btn_my_book) {
 			if (mMyBooksFragment == null) {
+
+				Bundle bundle = new Bundle();
+				bundle.putString("access_token", readpeer_access_token);
+				bundle.putString("uid", readpeer_uid);
+				bundle.putString("username", readpeer_username);
+
 				mMyBooksFragment = new MyBooksFragment();
+				mMyBooksFragment.setArguments(bundle);
+				transaction.add(R.id.fragment_container, mMyBooksFragment);
 			}
-			transaction.add(R.id.fragment_container, mMyBooksFragment);
 			transaction.show(mMyBooksFragment);
 		} else if (id == R.id.btn_all_books) {
 			if (mBookStoreFragment == null) {
+
+				Bundle bundle = new Bundle();
+				bundle.putString("access_token", readpeer_access_token);
+				bundle.putString("uid", readpeer_uid);
+				bundle.putString("username", readpeer_username);
+
 				mBookStoreFragment = new AllBooksFragment();
+				mBookStoreFragment.setArguments(bundle);
+				transaction.add(R.id.fragment_container, mBookStoreFragment);
 			}
-			transaction.add(R.id.fragment_container, mBookStoreFragment);
 			transaction.show(mBookStoreFragment);
 		} else if (id == R.id.btn_my_space) {
 			if (mySpaceFragment == null) {
 				mySpaceFragment = new MySpaceFragment();
+				transaction.add(R.id.fragment_container, mySpaceFragment);
 			}
-			transaction.add(R.id.fragment_container, mySpaceFragment);
 			transaction.show(mySpaceFragment);
 		}
 		int pos;
