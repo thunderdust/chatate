@@ -2,9 +2,14 @@ package liu.weiran.chatate.ui.activities.book;
 
 import java.io.IOException;
 
+import com.avos.avoscloud.AVException;
+
 import liu.weiran.chatate.R;
+import liu.weiran.chatate.service.CloudService;
 import liu.weiran.chatate.ui.activities.BaseActivity;
 import liu.weiran.chatate.ui.activities.MainActivity;
+import liu.weiran.chatate.util.NetworkAsyncTask;
+import liu.weiran.chatate.util.Utils;
 import liu.weiran.chatate.util.book.ReturnedContentHandler;
 import liu.weiran.chatate.util.book.tdHttpClient;
 
@@ -53,6 +58,7 @@ public class ReadPeerLoginActivity extends BaseActivity {
 
 	private final int RESULT_OK = 1;
 	private final int RESULT_CANCEL = -1;
+	private static String loginFeedback = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -181,16 +187,29 @@ public class ReadPeerLoginActivity extends BaseActivity {
 	private void attemptLogin() throws IOException, Exception {
 
 		Log.v(TAG, "Trying to login");
-		String feedback = null;
 		mHttpClient.clearCookies();
-		try {
-			feedback = mHttpClient.logIn(username, password);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		if (feedback != null && feedback != "unauthorized") {
-			getLoginData(feedback);
+
+		new NetworkAsyncTask(mCtx) {
+			@Override
+			protected void doInBack() throws Exception {
+				loginFeedback = mHttpClient.logIn(username, password);
+			}
+
+			@Override
+			protected void onPost(Exception e) {
+				if (e != null) {
+					Utils.toast(e.getMessage());
+				} else {
+					handleLoginFeedback(loginFeedback);
+				}
+			}
+		}.execute();
+	}
+
+	private void handleLoginFeedback(String loginFeedback) {
+
+		if (loginFeedback != null && loginFeedback != "unauthorized") {
+			getLoginData(loginFeedback);
 			// After login successfully, jump to bookshelf activity
 			Toast.makeText(this, "Welcome Back, " + site_username + " !",
 					Toast.LENGTH_SHORT).show();
@@ -202,18 +221,19 @@ public class ReadPeerLoginActivity extends BaseActivity {
 			setResult(RESULT_OK, passInforIntent);
 			finish();
 
-		} else if (feedback == "unauthorized") {
+		} else if (loginFeedback == "unauthorized") {
 			Toast.makeText(this, "account unauthorized", Toast.LENGTH_SHORT)
 					.show();
 			Intent passInforIntent = new Intent(this, MainActivity.class);
 			setResult(RESULT_CANCEL, passInforIntent);
 			finish();
-		} else if (feedback == null) {
+		} else if (loginFeedback == null) {
 			Toast.makeText(this, "login failed", Toast.LENGTH_SHORT).show();
 			Intent passInforIntent = new Intent(this, MainActivity.class);
 			setResult(RESULT_CANCEL, passInforIntent);
 			finish();
 		}
+
 	}
 
 	private void getLoginData(String data) {
@@ -222,7 +242,6 @@ public class ReadPeerLoginActivity extends BaseActivity {
 		// Pass necessary data to profile activity
 		access_token = mContentHandler.getValueFromContentReturned(data,
 				"access_token", TYPE_STRING);
-		Log.d(TAG, "access_token:" + access_token);
 
 		// Save access token to cache
 		SharedPreferences sp = this.getSharedPreferences("token",
@@ -230,13 +249,13 @@ public class ReadPeerLoginActivity extends BaseActivity {
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putString("token", access_token);
 		editor.commit();
-
-		Log.i(TAG, "access_token:" + access_token);
+		
 		uid = mContentHandler.getValueFromContentReturned(data, "uid",
 				TYPE_STRING);
-		Log.i(TAG, "uid:" + uid);
+		
 		site_username = mContentHandler.getValueFromContentReturned(data,
 				"name", TYPE_STRING);
+		
 		Log.i(TAG, uid);
 		Log.i(TAG, access_token);
 		Log.i(TAG, site_username);

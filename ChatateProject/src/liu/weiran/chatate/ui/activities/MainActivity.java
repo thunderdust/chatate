@@ -19,6 +19,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
@@ -35,14 +36,14 @@ public class MainActivity extends BaseActivity implements
 	MyBooksFragment mMyBooksFragment;
 	MySpaceFragment mySpaceFragment;
 
+	private final String TAG = "Main Activity";
 	private final int REQUEST_READPEER = 1;
 	private final int RESULT_OK = 1;
 	private final int RESULT_CANCEL = -1;
-	
+
 	private String readpeer_username = null;
 	private String readpeer_access_token = null;
 	private String readpeer_uid = null;
-	
 
 	public static final int FRAGMENT_N = 4;
 	Button[] tabs;
@@ -81,6 +82,7 @@ public class MainActivity extends BaseActivity implements
 		// App.initTables();
 
 		// Readpeer account login
+		Log.d("MainActivity", "Before open readpeer login");
 		Intent i = new Intent(this, ReadPeerLoginActivity.class);
 		startActivityForResult(i, REQUEST_READPEER);
 	}
@@ -90,10 +92,28 @@ public class MainActivity extends BaseActivity implements
 		if (requestCode == REQUEST_READPEER) {
 			if (resultCode == RESULT_OK) {
 				Bundle result = data.getExtras();
-				readpeer_access_token = result.getString("access_token");
-				readpeer_username =  result.getString("username");
-				readpeer_uid = result.getString("uid");
-				updateBookFragments();
+				if (result != null) {
+					readpeer_access_token = result.getString("access_token");
+					readpeer_username = result.getString("username");
+					readpeer_uid = result.getString("uid");
+					Log.i(TAG, readpeer_uid);
+					Log.i(TAG, readpeer_access_token);
+					Log.i(TAG, readpeer_username);
+
+					if (readpeer_access_token != null
+							&& readpeer_username != null
+							&& readpeer_uid != null) {
+						Log.d("MainActivity",
+								"information from readpeer DOES NOT contain NULL value");
+						updateBookFragments();
+					} else {
+						Log.e("MainActivity",
+								"information from readpeer contains NULL value");
+					}
+				} else {
+					Utils.toast(mCtx,
+							"Failed to get Readpeer account information");
+				}
 			}
 			if (resultCode == RESULT_CANCEL) {
 				Utils.toast(mCtx, "Readpeer account login canceled");
@@ -102,11 +122,20 @@ public class MainActivity extends BaseActivity implements
 	}// onActivityResult
 
 	private void updateBookFragments() {
+
 		Bundle bundle = new Bundle();
 		bundle.putString("access_token", readpeer_access_token);
 		bundle.putString("uid", readpeer_uid);
 		bundle.putString("username", readpeer_username);
+
+		if (mBookStoreFragment == null) {
+			mBookStoreFragment = new AllBooksFragment();
+		}
 		mBookStoreFragment.setArguments(bundle);
+
+		if (mMyBooksFragment == null) {
+			mMyBooksFragment = new MyBooksFragment();
+		}
 		mMyBooksFragment.setArguments(bundle);
 	}
 
@@ -146,32 +175,32 @@ public class MainActivity extends BaseActivity implements
 		if (id == R.id.btn_message) {
 			if (conversationFragment == null) {
 				conversationFragment = new ConversationFragment();
-				transaction.add(R.id.fragment_container, conversationFragment);
 			}
+			transaction.add(R.id.fragment_container, conversationFragment);
 			transaction.show(conversationFragment);
 		} else if (id == R.id.btn_contact) {
 			if (contactFragment == null) {
 				contactFragment = new ContactFragment();
-				transaction.add(R.id.fragment_container, contactFragment);
 			}
+			transaction.add(R.id.fragment_container, contactFragment);
 			transaction.show(contactFragment);
 		} else if (id == R.id.btn_my_book) {
 			if (mMyBooksFragment == null) {
 				mMyBooksFragment = new MyBooksFragment();
-				transaction.add(R.id.fragment_container, mMyBooksFragment);
 			}
+			transaction.add(R.id.fragment_container, mMyBooksFragment);
 			transaction.show(mMyBooksFragment);
 		} else if (id == R.id.btn_all_books) {
 			if (mBookStoreFragment == null) {
 				mBookStoreFragment = new AllBooksFragment();
-				transaction.add(R.id.fragment_container, mBookStoreFragment);
 			}
+			transaction.add(R.id.fragment_container, mBookStoreFragment);
 			transaction.show(mBookStoreFragment);
 		} else if (id == R.id.btn_my_space) {
 			if (mySpaceFragment == null) {
 				mySpaceFragment = new MySpaceFragment();
-				transaction.add(R.id.fragment_container, mySpaceFragment);
 			}
+			transaction.add(R.id.fragment_container, mySpaceFragment);
 			transaction.show(mySpaceFragment);
 		}
 		int pos;

@@ -131,6 +131,8 @@
             android:name="liu.weiran.chatate.ui.activities.UpdataContentActivity"
             android:label="@string/app_name" >
         </activity>
+        <activity android:name="liu.weiran.chatate.ui.activities.book.ReadPeerLoginActivity" >
+        </activity>
 
         <meta-data
             android:name="Channel ID"

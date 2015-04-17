@@ -11,7 +11,7 @@ import android.view.MenuItem;
 
 public class BaseActivity extends FragmentActivity {
 
-	Context mCtx;
+	protected Context mCtx;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
