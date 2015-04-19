@@ -140,7 +140,7 @@ public class AnnotationActivity extends FragmentActivity {
 				Dialog optionsDialog = new Dialog(getWindow().getDecorView()
 						.getContext());
 				optionsDialog
-						.setContentView(R.layout.image_upload_option_dialog);
+						.setContentView(R.layout.dialog_image_upload_option);
 				optionsDialog.setTitle("Attach image");
 				optionsDialog.setCanceledOnTouchOutside(true);
 				initializeDialogItems(optionsDialog);
@@ -235,84 +235,6 @@ public class AnnotationActivity extends FragmentActivity {
 
 		ImageButton linkButton = (ImageButton) findViewById(R.id.btn_link);
 		linkButton.setVisibility(View.INVISIBLE);
-
-		/* Attach Link and video are currently deprecated. */
-
-		// Button confirmBtn = (Button) findViewById(R.id.btn_link_confirm);
-		// final EditText linkET = (EditText) findViewById(R.id.text_link);
-		// confirmBtn.setOnClickListener(new OnClickListener() {
-		// @Override
-		// public void onClick(View v) {
-		// mLink = linkET.getText().toString();
-		// // updatePreviews(PREVIEW_LINK,null);
-		// }
-		// });
-
-		/*
-		 * 
-		 * linkButton.setOnClickListener(new View.OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) { Dialog attachLinkDialog = new
-		 * Dialog(getWindow().getDecorView() .getContext());
-		 * attachLinkDialog.setContentView(R.layout.link_attach_dialog);
-		 * attachLinkDialog.setTitle("Attach links");
-		 * attachLinkDialog.setCanceledOnTouchOutside(true);
-		 * attachLinkDialog.show(); } });
-		 * 
-		 * final ImageButton videoButton = (ImageButton)
-		 * findViewById(R.id.btn_video);
-		 * videoButton.setVisibility(View.INVISIBLE);
-		 * videoButton.setOnClickListener(new View.OnClickListener() {
-		 * 
-		 * @Override public void onClick(View v) { // TODO Auto-generated method
-		 * stub // if the device has no camera, disable this function Dialog
-		 * videoOptionsDialog = new Dialog(getWindow()
-		 * .getDecorView().getContext()); videoOptionsDialog
-		 * .setContentView(R.layout.video_upload_option_dialog);
-		 * videoOptionsDialog.setTitle("Attach video");
-		 * videoOptionsDialog.setCanceledOnTouchOutside(true);
-		 * initializeDialogItems(videoOptionsDialog); videoOptionsDialog.show();
-		 * }
-		 * 
-		 * private void initializeDialogItems(final Dialog optionsDialog) {
-		 * 
-		 * final TextView tv_from_gallery = (TextView) optionsDialog
-		 * .findViewById(R.id.text_from_gallery);
-		 * tv_from_gallery.setOnTouchListener(new OnTouchListener() {
-		 * 
-		 * @Override public boolean onTouch(View v, MotionEvent e) { if
-		 * (e.getAction() == MotionEvent.ACTION_DOWN) {
-		 * tv_from_gallery.setBackgroundColor(0xFFD3D3D3); return true; } else
-		 * if (e.getAction() == MotionEvent.ACTION_UP) {
-		 * tv_from_gallery.setBackgroundColor(0xFF32CD32);
-		 * optionsDialog.dismiss(); Intent openGalleryIntent = new Intent();
-		 * openGalleryIntent .setAction(Intent.ACTION_GET_CONTENT);
-		 * openGalleryIntent.setType("video/*");
-		 * startActivityForResult(openGalleryIntent, REQUEST_GALLERY_VIDEO);
-		 * return true; } return false; } });
-		 * 
-		 * final TextView tv_record_video = (TextView) optionsDialog
-		 * .findViewById(R.id.text_record_video); // Disable click if device has
-		 * no camera PackageManager pm = getPackageManager(); boolean hasCamera
-		 * = pm .hasSystemFeature(PackageManager.FEATURE_CAMERA) ||
-		 * pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) ||
-		 * (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD && Camera
-		 * .getNumberOfCameras() > 0); if (!hasCamera) {
-		 * tv_record_video.setClickable(false);
-		 * tv_record_video.setBackgroundColor(0xFFBEBEBE); } else {
-		 * tv_record_video.setOnTouchListener(new OnTouchListener() {
-		 * 
-		 * @Override public boolean onTouch(View v, MotionEvent e) { if
-		 * (e.getAction() == MotionEvent.ACTION_DOWN) {
-		 * tv_record_video.setBackgroundColor(0xFFD3D3D3); return true; } else
-		 * if (e.getAction() == MotionEvent.ACTION_UP) {
-		 * tv_record_video.setBackgroundColor(0xFF32CD32);
-		 * optionsDialog.dismiss(); Intent takeVideoIntent = new Intent(
-		 * MediaStore.ACTION_VIDEO_CAPTURE); if (takeVideoIntent
-		 * .resolveActivity(getPackageManager()) != null) {
-		 * startActivityForResult(takeVideoIntent, REQUEST_TAKE_VIDEO); } return
-		 * true; } return false; } }); } } });
-		 */
 
 		Button submitBtn = (Button) findViewById(R.id.btn_submit);
 		submitBtn.setOnClickListener(new View.OnClickListener() {

@@ -28,3 +28,5 @@ proguard/
 
 # APK Files
 *.apk
+
+*.class
