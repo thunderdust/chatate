@@ -1,0 +1,9 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:id="@+id/show_annotation"
+        android:orderInCategory="100"
+        android:showAsAction="always"
+        android:title="Show Annotation" android:icon="@drawable/btn_show_annotation"/>
+    <item android:id="@+id/text_jump" android:title="Jump to..." android:showAsAction="never"></item>
+    <item android:id="@+id/search_text" android:title="Search" android:showAsAction="never"></item>
+</menu>

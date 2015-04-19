@@ -16,6 +16,10 @@ import liu.weiran.chatate.util.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -34,20 +38,24 @@ public class bookHtmlDownloader {
 	private String[] bookHtmlPages;
 	private int pageCount;
 	private StringBuffer bookContentWhole;
-	private final String SCRIPT_ANNOTATION = "<script type=\"text/javascript\" src=\"annotation.js\"></script>";
 
 	/* Script reference and meta information */
 
-	// private final String RANGY_REF1 =
-	// "<script src='rangy-core.js'></script>";
-	// private final String RANGY_REF2 =
-	// "<script src='rangy-serializer.js'></script>";
-	// private final String RANGY_REF3 =
-	// "<script src='rangy-textrange.js'></script>";
-	// private final String RANGY_REF4 =
-	// "<script src='rangy-highlighter.js'></script>";
-	// private final String HIGHLIGHTER_REF =
-	// "<script src='annotation.js'></script>";
+	private final String RANGY_REF1 = "<script src='rangy-core.js'></script>";
+	private final String RANGY_REF2 = "<script src='rangy-serializer.js'></script>";
+	private final String RANGY_REF3 = "<script src='rangy-textrange.js'></script>";
+	private final String RANGY_REF4 = "<script src='rangy-highlighter.js'></script>";
+	private final String RANGY_REF5 = "<script src='rangy-cssclassapplier.js'></script>";
+	private final String RANGY_REF6 = "<script src='rangy-selectionsaverestore.js'></script>";
+	private final String SCRIPT_ANNOTATION = "<script type=\"text/javascript\" src=\"annotation.js\"></script>";
+
+	private final String RANGY_REF1_SRC = "rangy-core.js";
+	private final String RANGY_REF2_SRC = "rangy-serializer.js";
+	private final String RANGY_REF3_SRC = "rangy-textrange.js";
+	private final String RANGY_REF4_SRC = "rangy-highlighter.js";
+	private final String RANGY_REF5_SRC = "rangy-cssclassapplier.js";
+	private final String RANGY_REF6_SRC = "rangy-selectionsaverestore.js";
+	private final String SCRIPT_ANNOTATION_SRC = "annotation.js";
 
 	// 'Synchronized' is to ensure there is only one instance
 	public static synchronized bookHtmlDownloader getDownloaderInstance() {
@@ -100,36 +108,26 @@ public class bookHtmlDownloader {
 	private String injectScriptReference(String content)
 			throws UnsupportedEncodingException, JSONException {
 
-		// JSONArray JArray = new JSONArray(content);
-		// JSONObject obj = (JSONObject) JArray.get(0);
-		// String htmlStr = obj.getString("html");
-		// String htmlContent = htmlStr.toString();
-		// JsonParser parser = new JsonParser();
-		// JsonObject obj = (JsonObject)parser.parse(content);
-		// Log.d(TAG, "parsed json object:" + obj);
 		Gson gson = new Gson();
 		String htmlContent = gson.fromJson(content, String.class);
 		Log.d(TAG, "html content converted with Gson:" + htmlContent);
 
-		String part1 = "";
-		String part2 = "";
+		String finalContent = SCRIPT_ANNOTATION + htmlContent;
+		Log.d(TAG, "parsed content:" + finalContent);
 
-		int position = htmlContent.indexOf("<body>");
-		if (position == -1) {
-			Log.e(TAG, "cannot find head tag");
-		} else {
-			part1 = htmlContent.substring(0, position);
-			Log.d(TAG, "substring 1: " + part1);
-			part1 += SCRIPT_ANNOTATION;
-			Log.d(TAG, "substring 1 new: " + part1);
-			part2 = htmlContent.substring(position);
-			Log.d(TAG, "substring 2: " + part2);
-		}
-		StringBuilder sb = new StringBuilder(part1);
-		sb.append(part2);
-		String result = sb.toString();
-		Log.d(TAG, "result: " + result);
-		return result;
+		/*
+		 * Document doc = Jsoup.parse(htmlContent);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF1_SRC);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF2_SRC);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF3_SRC);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF4_SRC);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF5_SRC);
+		 * doc.head().appendElement("script").attr("src", RANGY_REF6_SRC);
+		 * doc.head().appendElement("script").attr("src",
+		 * SCRIPT_ANNOTATION_SRC); String html = doc.html(); Log.d(TAG,
+		 * "parsed content:" + html);
+		 */
+		return finalContent;
 	}
 
 	private static StringBuffer removeUTFCharacters(String data) {
@@ -164,8 +162,11 @@ public class bookHtmlDownloader {
 		if (Utils.isSDCardMounted()) {
 			String storagePath = Environment.getExternalStorageDirectory()
 					.getPath();
+			if (author.isEmpty() || author.length() == 0 || author == null) {
+				author = "unknown";
+			}
 			String folderPath = storagePath + "/chatate/Books/" + bookIndex
-					+ "-" + bookName;
+					+ "-" + bookName + "-" + author;
 			File folder = new File(folderPath);
 			if (!folder.exists()) {
 				folder.mkdirs();

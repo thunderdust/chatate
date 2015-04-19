@@ -245,6 +245,5 @@ public class MainActivity extends BaseActivity implements
 		if (mMyBooksFragment != null) {
 			mMyBooksFragment.updateLocalBooks();
 		}
-
 	}
 }

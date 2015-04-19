@@ -9,6 +9,7 @@ import java.util.concurrent.TimeoutException;
 import liu.weiran.chatate.R;
 import liu.weiran.chatate.ui.activities.book.ReadBookHtmlActivity;
 import liu.weiran.chatate.ui.fragments.BaseFragment;
+import liu.weiran.chatate.util.Utils;
 import liu.weiran.chatate.util.book.tdHttpClient;
 
 import android.app.Dialog;
@@ -61,7 +62,6 @@ public class MyBooksFragment extends BaseFragment {
 	private ProgressDialog dialog = null;
 	private ShelfAdapter mAdapter;
 	private tdHttpClient mHttpClient;
-	
 
 	private final float BOOK_TITLE_FONT_SIZE_BIG = 15;
 	private final float BOOK_TITLE_FONT_SIZE_MEDIUM = 12;
@@ -83,6 +83,7 @@ public class MyBooksFragment extends BaseFragment {
 			switch (msg.what) {
 			case 1:
 				dialog.dismiss();
+				// update books
 				mAdapter = new ShelfAdapter(getActivity(), bookNames);
 				bookShelf.setAdapter(mAdapter);
 				break;
@@ -171,6 +172,10 @@ public class MyBooksFragment extends BaseFragment {
 					long arg3) {
 				String bookID = bookIDs.get(index);
 				String bookTitle = bookNames.get(index);
+				String author = authorNames.get(index);
+				if (author.isEmpty() || author == null || author.length() == 0) {
+					author = "unknown";
+				}
 
 				if (index >= myBookNum) {
 
@@ -183,6 +188,7 @@ public class MyBooksFragment extends BaseFragment {
 					openBookHtmlIntent.putExtra("uid", uid);
 					openBookHtmlIntent.putExtra("access_token", access_token);
 					openBookHtmlIntent.putExtra("book name", bookTitle);
+					openBookHtmlIntent.putExtra("author", author);
 					startActivity(openBookHtmlIntent);
 				}
 			}
@@ -191,13 +197,15 @@ public class MyBooksFragment extends BaseFragment {
 		// Long press item -> delete/favorite dialog
 		bookShelf.setOnItemLongClickListener(new OnItemLongClickListener() {
 
+			@SuppressWarnings("deprecation")
 			@Override
 			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
 					final int index, long arg3) {
 
 				final String bookID = bookIDs.get(index);
 				final String bookTitle = bookNames.get(index);
-				Dialog bookManageDialog = new Dialog(getActivity());
+				final String author = authorNames.get(index);
+				final Dialog bookManageDialog = new Dialog(getActivity());
 				bookManageDialog.setTitle("Manage this book");
 				bookManageDialog.setCanceledOnTouchOutside(true);
 				bookManageDialog.setContentView(R.layout.dialog_book_manage);
@@ -219,17 +227,27 @@ public class MyBooksFragment extends BaseFragment {
 
 					@Override
 					public void onClick(View arg0) {
+
+						if (bookManageDialog != null) {
+							bookManageDialog.dismiss();
+						}
+
 						boolean isDeleted = false;
 						try {
-							isDeleted = deleteALocalBook(bookTitle, bookID);
+							if (author.isEmpty() || author == null
+									|| author.length() == 0) {
+								isDeleted = deleteALocalBook(bookTitle, bookID,
+										"unknown");
+							} else {
+								Log.d(TAG, "author:" + author);
+								isDeleted = deleteALocalBook(bookTitle, bookID,
+										author);
+							}
 						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (ExecutionException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (TimeoutException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						if (isDeleted) {
@@ -241,6 +259,8 @@ public class MyBooksFragment extends BaseFragment {
 									Toast.LENGTH_SHORT).show();
 						} else {
 							Log.e(TAG, "Book deletion failed!");
+							Toast.makeText(getActivity(), "Deletion failed",
+									Toast.LENGTH_SHORT).show();
 						}
 					}
 				});
@@ -253,7 +273,11 @@ public class MyBooksFragment extends BaseFragment {
 				favoriteBtn.setOnClickListener(new OnClickListener() {
 					@Override
 					public void onClick(View v) {
-
+						Toast.makeText(getActivity(), "Added to favorite",
+								Toast.LENGTH_SHORT).show();
+						if (bookManageDialog != null) {
+							bookManageDialog.dismiss();
+						}
 					}
 				});
 				bookManageDialog.show();
@@ -302,7 +326,7 @@ public class MyBooksFragment extends BaseFragment {
 			String bookName = fileName.split("-")[1];
 			String authorName = fileName.split("-")[2];
 			if (authorName == null) {
-				authorName = "Unknown";
+				authorName = "unknown";
 			}
 			bookNames.add(bookName);
 			bookIDs.add(bookIndex);
@@ -310,48 +334,24 @@ public class MyBooksFragment extends BaseFragment {
 		}
 	}
 
-	private class deleteUserBookOnServerTask extends
-			AsyncTask<String, Void, Void> {
-		@Override
-		protected Void doInBackground(String... bookID) {
-			try {
-				isUserBookDeletedOnServer = mHttpClient.deleteUserBook(
-						bookID[0], access_token, uid);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			return null;
-		}
-	}
+	private boolean deleteALocalBook(String bookName, final String bookID,
+			String author) throws TimeoutException, InterruptedException,
+			ExecutionException {
 
-	// Delete a book from local storage -> update user's library on server side
-	private boolean deleteALocalBook(String bookName, final String bookID)
-			throws TimeoutException, InterruptedException, ExecutionException {
+		if (Utils.isSDCardMounted()) {
+			String storagePath = Environment.getExternalStorageDirectory()
+					.getPath() + "/chatate/Books/";
+			String bookPath = storagePath + bookID + "-" + bookName + "-"
+					+ author;
+			Log.d(TAG, "file path:" + bookPath);
+			File bookFile = new File(bookPath);
+			boolean isDeleted = bookFile.delete();
+			return isDeleted;
 
-		// delete from server side first
-		// use global boolean <isUserBookDeletedOnServer> to indicate if
-		// deletion is successful
-		deleteUserBookOnServerTask newDeletionTask = new deleteUserBookOnServerTask();
-		newDeletionTask.execute(bookID);
-		newDeletionTask.get(1000, TimeUnit.MILLISECONDS);
-		if (isUserBookDeletedOnServer) {
-			Log.d(TAG, "book on server is deleted");
-			if (Environment.getExternalStorageState().equals(
-					android.os.Environment.MEDIA_MOUNTED)) {
-				String storagePath = Environment.getExternalStorageDirectory()
-						.getPath() + "/chatate/Books/";
-				String bookPath = storagePath + bookID + "-" + bookName;
-				File bookFile = new File(bookPath);
-				boolean isDeleted = bookFile.delete();
-				return isDeleted;
-
-			} else {
-				Log.e(TAG, "No SD card found");
-				Toast.makeText(getActivity(), "Error: No SD card found",
-						Toast.LENGTH_SHORT).show();
-				return false;
-			}
 		} else {
+			Log.e(TAG, "No SD card found");
+			Toast.makeText(getActivity(), "Error: No SD card found",
+					Toast.LENGTH_SHORT).show();
 			return false;
 		}
 	}

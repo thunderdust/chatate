@@ -314,7 +314,7 @@ public class AllBooksFragment extends Fragment {
 							Log.i(TAG, "book name:" + selectedBookTitle);
 							selectedBookAuthor = book.getString("author");
 							if (selectedBookAuthor == null) {
-								selectedBookAuthor = "Unknown";
+								selectedBookAuthor = "unknown";
 							}
 							selectedBookAnnotationCount = book
 									.getString("annotation_count");
@@ -390,6 +390,9 @@ public class AllBooksFragment extends Fragment {
 											openBookIntent.putExtra(
 													"book name",
 													selectedBookTitle);
+											openBookIntent.putExtra(
+													"author",
+													selectedBookAuthor);
 											bookDetailDialog.dismiss();
 											startActivity(openBookIntent);
 										}
@@ -501,7 +504,7 @@ public class AllBooksFragment extends Fragment {
 		if (Environment.getExternalStorageState().equals(
 				android.os.Environment.MEDIA_MOUNTED)) {
 			String storagePath = Environment.getExternalStorageDirectory()
-					.getPath() + "/Readpeer/Books/";
+					.getPath() + "/chatate/Books/";
 			File folder = new File(storagePath);
 			File[] fileList = folder.listFiles();
 			return fileList;
@@ -598,7 +601,7 @@ public class AllBooksFragment extends Fragment {
 						// Set title font size according to title length
 						setTitleTextSize(mViewHolder.mTextView, bookTitle);
 					} else {
-						mViewHolder.mTextView.setText("Unknown");
+						mViewHolder.mTextView.setText("unknown");
 						setTitleTextSize(mViewHolder.mTextView, "unknown");
 					}
 
@@ -693,7 +696,7 @@ public class AllBooksFragment extends Fragment {
 		Log.d(TAG, "getting book covers from local cache");
 		bookCovers = new ArrayList<Drawable>();
 		String rootPath = Environment.getExternalStorageDirectory().getPath();
-		String applicationFolderPath = rootPath + "/Readpeer";
+		String applicationFolderPath = rootPath + "/chatate";
 		String cacheFilePath = applicationFolderPath + "/Cache/Pictures/";
 
 		for (int i = 0; i < bookNumber; i++) {
