@@ -6,6 +6,8 @@ import java.util.List;
 
 import liu.weiran.chatate.R;
 import liu.weiran.chatate.ui.activities.AnnotationActivity;
+import liu.weiran.chatate.ui.fragments.book.AnnotationFragment;
+import liu.weiran.chatate.ui.fragments.book.AnnotationFragment.OnAnnotationSelectedListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +22,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
@@ -40,7 +44,8 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 
-public class ReadBookHtmlActivity extends FragmentActivity {
+public class ReadBookHtmlActivity extends FragmentActivity implements
+		OnAnnotationSelectedListener {
 
 	private static WebView mWebView;
 	private final String TAG = "Read Book Html";
@@ -206,8 +211,49 @@ public class ReadBookHtmlActivity extends FragmentActivity {
 		// action with ID action_refresh was selected
 		case R.id.show_annotation: {
 
-		}
+			FragmentManager fm = getSupportFragmentManager();
+			Fragment annotationFragment = fm
+					.findFragmentById(R.id.annotationFragmentContainer);
+			// if open annotation container
+			if (annotationFragment == null) {
+				Log.d(TAG, "annotation fragment is NULL");
+				annotationFragment = new AnnotationFragment();
+
+				Bundle annotationBundle = new Bundle();
+				annotationBundle.putString("access_token", access_token);
+				annotationBundle.putString("bookIndex", mBookIndex);
+				annotationBundle.putString("uid", mUid);
+				annotationFragment.setArguments(annotationBundle);
+				fm.beginTransaction()
+						.add(android.R.id.content, annotationFragment).commit();
+				item.setTitle("Close Annotation");
+				item.setIcon(getResources().getDrawable(
+						R.drawable.btn_close_annotation));
+				// Close annotation container
+			} else {
+				Log.d(TAG, "fragment already exists, Close annotation fragment");
+				fm.beginTransaction()
+						.remove(fm
+								.findFragmentById(R.id.annotationFragmentContainer))
+						.commit();
+				item.setTitle("Show Annotation");
+				item.setIcon(getResources().getDrawable(
+						R.drawable.btn_show_annotation));
+				// remove all highlights
+				Log.d(TAG, "about to load javascript");
+				mWebView.post(new Runnable() {
+					@TargetApi(19)
+					@Override
+					public void run() {
+						mWebView.evaluateJavascript(
+								"javascript:annotation.remove_all_highlights()",
+								null);
+					}
+				});
+			}// else
 			break;
+		}
+
 		default:
 			break;
 		}
@@ -440,8 +486,7 @@ public class ReadBookHtmlActivity extends FragmentActivity {
 			annotateBtn.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
-					fireNewAnnotationFragment(mHighlight, startOffset,
-							endOffset);
+					fireNewAnnotation(mHighlight, startOffset, endOffset);
 				}
 			});
 
@@ -450,10 +495,10 @@ public class ReadBookHtmlActivity extends FragmentActivity {
 		}
 	}
 
-	private void fireNewAnnotationFragment(String highlightedText,
-			int startOffset, int endOffset) {
+	private void fireNewAnnotation(String highlightedText, int startOffset,
+			int endOffset) {
 
-		Log.d(TAG, "Ready to fire new annotation fragment");
+		Log.d(TAG, "Ready to fire new annotation");
 		Intent toNewAnnotation = new Intent(this, AnnotationActivity.class);
 		toNewAnnotation.putExtra("highlight", highlightedText);
 		toNewAnnotation.putExtra("bid", mBookIndex);
@@ -768,6 +813,13 @@ public class ReadBookHtmlActivity extends FragmentActivity {
 			MyPagerAdapter p) {
 		mPager.setCurrentItem(p.getItemPosition(pageToShow), true);
 	}
+
 	/* --- View Pager Settings and Attributes --- end */
+
+	@Override
+	public void onAnnotationSelected(int startIndex, int endIndex) {
+		// TODO Auto-generated method stub
+
+	}
 
 }

@@ -64,7 +64,7 @@
     <string name="camera">Camera</string>
     <string name="annotation">Annotation</string>
     <string name="send">Send</string>
-    <string name="cannotGetYourAddressInfo">Can't get location</string>
+    <string name="cannotGetYourAddressInfo">Cannot get location</string>
     <string name="emotion">Emotion</string>
     <string name="pleaseCheckNetwork">Check network</string>
     <string name="registerSucceed">Register done</string>

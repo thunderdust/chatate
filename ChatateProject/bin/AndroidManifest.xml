@@ -136,6 +136,10 @@
         </activity>
         <activity android:name="liu.weiran.chatate.ui.activities.CameraActivity" >
         </activity>
+        <activity android:name="liu.weiran.chatate.ui.activities.book.AnnotationImageViewActivity" >
+        </activity>
+         <activity android:name="liu.weiran.chatate.ui.activities.book.AnnotationVideoViewActivity" >
+        </activity>
 
         <meta-data
             android:name="Channel ID"

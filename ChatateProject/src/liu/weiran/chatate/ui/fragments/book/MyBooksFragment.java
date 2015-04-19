@@ -176,9 +176,7 @@ public class MyBooksFragment extends BaseFragment {
 				if (author.isEmpty() || author == null || author.length() == 0) {
 					author = "unknown";
 				}
-
 				if (index >= myBookNum) {
-
 				} else {
 					// Intent openBookIntent = new
 					// Intent(getActivity(),ReadBookActivity.class);
